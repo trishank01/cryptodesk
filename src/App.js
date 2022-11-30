@@ -21,7 +21,7 @@ function App() {
               <Route exect path="/" element={<Homepage />} />
               <Route path="/exchanges" element={<Exchanges />} />
               <Route exect path="/cryptocurrencies" element={<Cryptocurrencies />} />
-              <Route exect path="/crypto/coinId" element={<CryptoDetails />} />
+              <Route exect path="/crypto/:coinId" element={<CryptoDetails />} />
               <Route exect path="/news" element={<News />} />
             </Routes>
           </div>
