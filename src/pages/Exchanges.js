@@ -35,7 +35,7 @@ const Exchanges = () => {
                         <Avatar className='exchange-image' src={exchange.image}/>
                         <Text> <strong>{exchange.name}</strong> </Text>
                       </Col>
-                      <Col span={6}>${millify(exchange.trade_volume_24h_btc)}</Col>
+                      <Col span={6}>{exchange.trade_volume_24h_btc.toFixed(2)} btc</Col>
                       <Col span={6}>{exchange.country || "NA"}</Col>
                       <Col span={6}>
                         <a href={exchange.url} target="_blank" rel='noreferrer'>{exchange.name}</a>

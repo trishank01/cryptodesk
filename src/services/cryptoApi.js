@@ -15,7 +15,10 @@ export const cryptoApi = createApi({
     baseQuery : fetchBaseQuery({baseUrl}),
     endpoints : (builder) => ({
         getCryptos : builder.query({
-            query: (count) => createRequest(`/coins?limit=${count}`)
+            query: () => createRequest(`/coins?limit=10`)
+        }),
+        getCryptosForPagination : builder.query({
+            query: ({count , offset}) => createRequest(`/coins?limit=${count}&offset=${offset}`)
         }),
         getCryptoDetails : builder.query({
             query: (coinId) => createRequest(`/coin/${coinId}`)
@@ -23,8 +26,14 @@ export const cryptoApi = createApi({
         getCryptoHistory : builder.query({
             query: ({coinId , timeperiod}) => createRequest(`coin/${coinId}/history?timePeriod=${timeperiod}`)
         }),
+        getSearchsuggestions : builder.query({
+            query: (query) => createRequest(`/search-suggestions?query=${query}`)
+        }),
+        getCryptoCoin : builder.query({
+            query: () => createRequest(`/coins?limit=1000`)
+        }),
     })
 
 })
 
-export const {useGetCryptosQuery , useGetCryptoDetailsQuery , useGetCryptoHistoryQuery} = cryptoApi
+export const {useGetCryptosQuery , useGetCryptosForPaginationQuery,  useGetCryptoDetailsQuery , useGetCryptoHistoryQuery , useGetSearchsuggestionsQuery , useGetCryptoCoinQuery} = cryptoApi
