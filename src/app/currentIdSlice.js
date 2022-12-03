@@ -11,6 +11,7 @@ const currentIdSlice = createSlice({
     reducers : {
         CURRENT_ID : (state , action) => {
            // const [currentID, setcurrentID] = useState([]);
+           //const {currentItemID , currentUserID} = action.payload
             if(state.currentId.includes(action.payload)){
                 //let RemoveOneCoin = 
                  state.currentId = state.currentId.filter((item) => item !== action.payload)

@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from "react";
 import millify from "millify";
 import { Link } from "react-router-dom";
-import { Card, Row, Col, Input, Button, Spin } from "antd";
+import { Card, Row, Col, Input, Button } from "antd";
 import { HeartFilled } from "@ant-design/icons";
 import {
   useGetCryptosForPaginationQuery,
   useGetSearchsuggestionsQuery,
 } from "../services/cryptoApi";
-import PaginationPage from "../components/Pagination";
 import { CURRENT_ID, SelectCurrentId } from "../app/currentIdSlice";
 import { useDispatch, useSelector } from "react-redux";
 import Loader from "../components/Loader";
@@ -17,7 +16,7 @@ import Loader from "../components/Loader";
 
 
 const Cryptocurrencies = ({ simplified }) => {
-  const [countNumber, setCountNumber] = useState(50);
+  const [countNumber] = useState(50);
   const [offset, setOffset] = useState(0);
   const count = simplified ? 10 : countNumber;
   const { data: cryptosList, isFetching } = useGetCryptosForPaginationQuery({
@@ -133,7 +132,7 @@ const Cryptocurrencies = ({ simplified }) => {
                   </div>
                   <div onClick={() => handleBookMark(currency.uuid)}>
               
-                    <HeartFilled  className={`text-[25px] duration-300 cursor-pointer mt-10 ${currentId.includes(currency.uuid) ? "text-red-700 scale-110" : ""}`}/>
+                    <HeartFilled  className={`text-[25px] duration-300 cursor-pointer mt-10 ${currentId?.includes(currency.uuid) ? "text-red-700 scale-110" : ""}`}/>
                   </div>
                 </div>
               </Card>

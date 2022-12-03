@@ -1,41 +1,89 @@
-import { Card, Col, Row } from 'antd'
-import millify from 'millify'
-import React from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { Link } from 'react-router-dom'
-import { CURRENT_ID, SelectCurrentId } from '../app/currentIdSlice'
-import { useGetCryptoCoinQuery } from '../services/cryptoApi'
-import {HeartFilled} from '@ant-design/icons'
-import Loader from '../components/Loader'
-
+import { Card, Col, Row } from "antd";
+import millify from "millify";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { Link } from "react-router-dom";
+import { CURRENT_ID, SelectCurrentId } from "../app/currentIdSlice";
+import { useGetCryptoCoinQuery } from "../services/cryptoApi";
+import { HeartFilled } from "@ant-design/icons";
+import Loader from "../components/Loader";
+import { SelectUserID } from "../app/authSlice";
+import {
+  collection,
+  addDoc,
+  Timestamp,
+  doc,
+  setDoc,
+  onSnapshot,
+  orderBy,
+  query,
+} from "firebase/firestore";
+import { db } from "../firebase/config";
 
 const WatchList = () => {
-   const currentId = useSelector(SelectCurrentId)  
-   const {data , isFetching} = useGetCryptoCoinQuery()
-   const cryptos = data?.data?.coins
-   const dispatch = useDispatch()
-  
-   const filtered = cryptos?.filter((item) => {
-    return currentId.includes(item.uuid) 
-   })
+  const currentId = useSelector(SelectCurrentId);
+  const { data, isFetching } = useGetCryptoCoinQuery();
+  const cryptos = data?.data?.coins;
+  const dispatch = useDispatch();
+  const currentUserID = useSelector(SelectUserID);
+  const [currentUserFirebase, setCurrentUserFirebase] = useState();
 
-//    const filtered = cryptos?.filter((item) => {
-//     return currentId.indexOf(item.uuid) !== -1
-//    })
+  const getCollection = () => {
+    try {
+      const docRef = collection(db, "registerUserInfo");
+      const q = query(docRef);
+      //orderBy("createdAt", "desc")
 
+      onSnapshot(q, (Snapshot) => {
+        const allData = Snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setCurrentUserFirebase(allData);
+      });
+    } catch (error) {
+      //toast.error(error.message);
+    }
+  };
+  useEffect(() => {
+    getCollection();
+  }, []);
 
-   const handleBookMark = (id) => {
+  const filterCurrentUser = currentUserFirebase?.filter((item) => {
+    return item?.uid?.includes(currentUserID);
+  });
 
-    dispatch(CURRENT_ID(id))
+  const filtered = cryptos?.filter((item) => {
+    return currentId.includes(item.uuid);
+  });
+
+  //    const filtered = cryptos?.filter((item) => {
+  //     return currentId.indexOf(item.uuid) !== -1
+  //    })
+
+  const handleBookMark = (id, currentUserID) => {
+    dispatch(
+      CURRENT_ID(id)
+    );
+
+    const userDocRef = doc(db, "bookMarkItemId" , currentUserID);
+    setDoc(userDocRef, {
+      bookMarkItemID: [id],
+      currentUserID: currentUserID,
+      createdAt: Timestamp.now().toDate(),
+    });
   };
 
-  if (isFetching) return <Loader/>;
-
+  if (isFetching) return <Loader />;
 
   return (
-    <div>
-        <h1>WatchList</h1>
-        <Row gutter={[32, 32]} className="crypto-card-container">
+    <div className="min-h-[36rem]">
+      {/* {filterCurrentUser[0]?.userName} */}
+      <h1 className="mb-4">
+        Welcome <b></b> here you can manage your
+        watchList{" "}
+      </h1>
+      <Row gutter={[32, 32]} className="crypto-card-container">
         {filtered?.map((currency) => {
           return (
             <Col
@@ -62,9 +110,14 @@ const WatchList = () => {
                     <p>Market Cap : {millify(currency.marketCap)}</p>
                     <p>Daily Cap : {millify(currency.change)}%</p>
                   </div>
-                  <div  onClick={() => handleBookMark(currency.uuid)}>
-              
-                    <HeartFilled  className={`text-[25px] duration-300 cursor-pointer mt-10 ${currentId.includes(currency.uuid) ? "text-red-700 scale-110" : ""}`}/>
+                  <div onClick={() => handleBookMark(currency.uuid)}>
+                    <HeartFilled
+                      className={`text-[25px] duration-300 cursor-pointer mt-10 ${
+                        currentId.includes(currency.uuid)
+                          ? "text-red-700 scale-110"
+                          : ""
+                      }`}
+                    />
                   </div>
                 </div>
               </Card>
@@ -72,9 +125,8 @@ const WatchList = () => {
           );
         })}
       </Row>
-
     </div>
-  )
-}
+  );
+};
 
-export default WatchList
+export default WatchList;
