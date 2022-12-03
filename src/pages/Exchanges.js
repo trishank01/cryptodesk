@@ -1,17 +1,18 @@
-import { Avatar, Button, Col, Collapse, Row   , Typography } from 'antd'
-import HTMLReactParser from 'html-react-parser'
-import millify from 'millify'
+import { Avatar, Col, Collapse, Row   , Typography } from 'antd'
 import React from 'react'
+import Loader from '../components/Loader'
 import { useGetCryptoExchangeQuery } from '../services/cryptoExchangeApi'
+
 const {Panel} = Collapse
 const {Text} = Typography
+
 
 const Exchanges = () => {
   const {data :cryptoExchange , isFetching } = useGetCryptoExchangeQuery()
 
 
 
-  if(isFetching) return "Loading..."
+  if(isFetching) return <Loader/>
 
   console.log(cryptoExchange)
   return (

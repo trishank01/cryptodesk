@@ -5,6 +5,7 @@ import "./App.css"
 import { Layout, Space, } from "antd";
 import Typography from "antd/es/typography/Typography";
 import WatchList from "./pages/WatchList";
+import Login from "./pages/auth/Login";
 
 
 
@@ -25,6 +26,7 @@ function App() {
               <Route exect path="/crypto/:coinId" element={<CryptoDetails />} />
               <Route exect path="/news" element={<News />} />
               <Route exect path="/watchlist" element={<WatchList />} />
+              <Route exect path="/login" element={<Login />} />
             </Routes>
           </div>
         </Layout>

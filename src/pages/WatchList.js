@@ -6,25 +6,30 @@ import { Link } from 'react-router-dom'
 import { CURRENT_ID, SelectCurrentId } from '../app/currentIdSlice'
 import { useGetCryptoCoinQuery } from '../services/cryptoApi'
 import {HeartFilled} from '@ant-design/icons'
+import Loader from '../components/Loader'
 
 
 const WatchList = () => {
    const currentId = useSelector(SelectCurrentId)  
-   const {data} = useGetCryptoCoinQuery()
+   const {data , isFetching} = useGetCryptoCoinQuery()
    const cryptos = data?.data?.coins
    const dispatch = useDispatch()
   
    const filtered = cryptos?.filter((item) => {
-    return currentId.indexOf(item.uuid) !== -1
+    return currentId.includes(item.uuid) 
    })
-   console.log(filtered)
+
+//    const filtered = cryptos?.filter((item) => {
+//     return currentId.indexOf(item.uuid) !== -1
+//    })
+
 
    const handleBookMark = (id) => {
 
     dispatch(CURRENT_ID(id))
   };
 
-   
+  if (isFetching) return <Loader/>;
 
 
   return (
@@ -53,7 +58,7 @@ const WatchList = () => {
                 </Link>
                 <div className="flex justify-between mt-2">
                   <div>
-                    <p>Price : {millify(currency.price)}</p>
+                    <p>Price : ${Number(currency?.price).toFixed(2)}</p>
                     <p>Market Cap : {millify(currency.marketCap)}</p>
                     <p>Daily Cap : {millify(currency.change)}%</p>
                   </div>

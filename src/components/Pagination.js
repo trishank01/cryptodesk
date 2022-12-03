@@ -1,14 +1,6 @@
-import React from 'react';
-import { Pagination } from 'antd';
+import React from "react";
+import { Pagination } from "antd";
 
-
-const PaginationPage = () =>  <Pagination defaultCurrent={1} total={50} />;
+const PaginationPage = ({offset , setOffset}) => <Pagination defaultCurrent={1} total={offset} onChange={(e) => setOffset(offset + 50)} />;
 
 export default PaginationPage;
-
-
-
-
- 
-
-

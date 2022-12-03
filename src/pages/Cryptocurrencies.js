@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import millify from "millify";
 import { Link } from "react-router-dom";
-import { Card, Row, Col, Input, Button } from "antd";
+import { Card, Row, Col, Input, Button, Spin } from "antd";
 import { HeartFilled } from "@ant-design/icons";
 import {
   useGetCryptosForPaginationQuery,
@@ -10,6 +10,7 @@ import {
 import PaginationPage from "../components/Pagination";
 import { CURRENT_ID, SelectCurrentId } from "../app/currentIdSlice";
 import { useDispatch, useSelector } from "react-redux";
+import Loader from "../components/Loader";
 
 
 
@@ -23,14 +24,16 @@ const Cryptocurrencies = ({ simplified }) => {
     count,
     offset,
   });
+
   const cryptoCoins = cryptosList?.data?.coins;
+  console.log(cryptoCoins)
 
   const [cryptos, setCryptos] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [currentpage, setCurrentpage] = useState(2);
+  //const [currentpage, setCurrentpage] = useState(2);
   const [showhidden, setShowhidden] = useState(false);
-  const { data } = useGetSearchsuggestionsQuery(searchTerm);
-  const [currentID, setcurrentID] = useState([]);
+  const { data   } = useGetSearchsuggestionsQuery(searchTerm);
+ // const [currentID, setcurrentID] = useState([]);
   const searchQuery = data?.data?.coins;
 
   const dispatch = useDispatch()
@@ -59,11 +62,12 @@ const Cryptocurrencies = ({ simplified }) => {
 
     dispatch(CURRENT_ID(id))
   };
+  
 
 
 
 
-  if (isFetching) return "Loading...";
+  if (isFetching) return <Loader/>;
 
   return (
     <>
@@ -123,7 +127,7 @@ const Cryptocurrencies = ({ simplified }) => {
                 </Link>
                 <div className="flex justify-between mt-2">
                   <div>
-                    <p>Price : {millify(currency.price)}</p>
+                    <p>Price : ${Number(currency?.price).toFixed(2)}</p>
                     <p>Market Cap : {millify(currency.marketCap)}</p>
                     <p>Daily Cap : {millify(currency.change)}%</p>
                   </div>
@@ -138,7 +142,7 @@ const Cryptocurrencies = ({ simplified }) => {
         })}
       </Row>
       {!simplified && (
-        <>
+        <div className="flex justify-center gap-2 mt-6">
           <Button
             className="disabled:bg-slate-500"
             onClick={() => setOffset(offset - 50)}
@@ -147,17 +151,16 @@ const Cryptocurrencies = ({ simplified }) => {
             Prev
           </Button>
           <Button onClick={() => setOffset(offset + 50)}>Next</Button>
-        </>
+        </div>
+      //  <div className="flex justify-center mt-6">
+      //    <PaginationPage offset={offset} setOffset={setOffset}/>
+      //  </div>
       )}
-      {/* <PaginationPage/> */}
+     
     </>
   );
 };
 
 export default Cryptocurrencies;
 
-// const filteredData = cryptosList?.data?.coins.filter((item) =>
-//   item.name.toLowerCase().includes(searchTerm)
-// );
 
-// setCryptos(filteredData);
