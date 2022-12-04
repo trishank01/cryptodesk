@@ -3,14 +3,14 @@ import { configureStore } from '@reduxjs/toolkit';
 import { cryptoApi } from '../services/cryptoApi';
 import { cryptoNewsApi } from '../services/cryptoNews';
 import { cryptoExchangeApi } from '../services/cryptoExchangeApi';
-import  CurrentReducer  from './currentIdSlice';
 import  authReducer  from './authSlice';
+import  watchlistReducer  from './watchlistSlice';
 
 
 export default configureStore({
   reducer: {
-    current : CurrentReducer,
     auth : authReducer,
+    watchlist : watchlistReducer,
     [cryptoApi.reducerPath]: cryptoApi.reducer,
     [cryptoNewsApi.reducerPath]: cryptoNewsApi.reducer,
     [cryptoExchangeApi.reducerPath]: cryptoExchangeApi.reducer,

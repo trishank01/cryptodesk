@@ -3,76 +3,89 @@ import millify from "millify";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
-import { CURRENT_ID, SelectCurrentId } from "../app/currentIdSlice";
 import { useGetCryptoCoinQuery } from "../services/cryptoApi";
 import { HeartFilled } from "@ant-design/icons";
 import Loader from "../components/Loader";
-import { SelectUserID } from "../app/authSlice";
-import {
-  collection,
-  addDoc,
-  Timestamp,
-  doc,
-  setDoc,
-  onSnapshot,
-  orderBy,
-  query,
-} from "firebase/firestore";
-import { db } from "../firebase/config";
+import { GET_WATCHLIST_COIN, selectWatchListCoin } from "../app/watchlistSlice";
+import { SelectuserEmail } from "../app/authSlice";
+import { doc, onSnapshot, setDoc } from "firebase/firestore";
+import { auth, db } from "../firebase/config";
+import { onAuthStateChanged } from "firebase/auth";
+
+
+
+
 
 const WatchList = () => {
-  const currentId = useSelector(SelectCurrentId);
   const { data, isFetching } = useGetCryptoCoinQuery();
   const cryptos = data?.data?.coins;
   const dispatch = useDispatch();
-  const currentUserID = useSelector(SelectUserID);
-  const [currentUserFirebase, setCurrentUserFirebase] = useState();
+  const [user, setUser] = useState(null);
+ 
+  const watchListcoin = useSelector(selectWatchListCoin)
 
-  const getCollection = () => {
-    try {
-      const docRef = collection(db, "registerUserInfo");
-      const q = query(docRef);
-      //orderBy("createdAt", "desc")
+  const userEmail = useSelector(SelectuserEmail)
+  const u1 = userEmail?.substring(0, userEmail.indexOf("@"));
+  const uName = u1.charAt(0).toUpperCase() + u1.slice(1);
+  
 
-      onSnapshot(q, (Snapshot) => {
-        const allData = Snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setCurrentUserFirebase(allData);
-      });
-    } catch (error) {
-      //toast.error(error.message);
-    }
-  };
-  useEffect(() => {
-    getCollection();
-  }, []);
 
-  const filterCurrentUser = currentUserFirebase?.filter((item) => {
-    return item?.uid?.includes(currentUserID);
-  });
+
 
   const filtered = cryptos?.filter((item) => {
-    return currentId.includes(item.uuid);
+    return watchListcoin?.includes(item.uuid);
   });
 
   //    const filtered = cryptos?.filter((item) => {
   //     return currentId.indexOf(item.uuid) !== -1
   //    })
 
-  const handleBookMark = (id, currentUserID) => {
-    dispatch(
-      CURRENT_ID(id)
-    );
-
-    const userDocRef = doc(db, "bookMarkItemId" , currentUserID);
-    setDoc(userDocRef, {
-      bookMarkItemID: [id],
-      currentUserID: currentUserID,
-      createdAt: Timestamp.now().toDate(),
+  
+  useEffect(() => {
+    onAuthStateChanged(auth, (user) => {
+      if (user) setUser(user);
+      else setUser(null);
     });
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      const userDocRef = doc(db, "bookmarks", user?.uid);
+      const unsubscribe = onSnapshot(userDocRef, (coin) => {
+        if (coin.exists()) {
+          // setWatchList(coin.data().coins);
+          dispatch(GET_WATCHLIST_COIN(coin.data().coins))
+        } else {
+          console.log("No items in watchList");
+        }
+      });
+      return () => {
+        unsubscribe();
+      };
+    }
+  }, [user , dispatch]);
+
+  
+
+  const handleRemoveBookMark = (id) => {
+    const userDocRef = doc(db, "bookmarks", user?.uid);
+
+    try {
+      setDoc(userDocRef, {
+        coins: watchListcoin.filter((coin) => coin !== id),
+      });
+      console.log("coin remvoed");
+     
+    } catch (error) {
+      console.log(error.message);
+    }
   };
+  console.log(watchListcoin)
+
+  // useEffect(() => {
+  //   dispatch(GET_WATCHLIST_COIN(coins))
+  //   console.log(coins)
+  // },[dispatch , coins])
 
   if (isFetching) return <Loader />;
 
@@ -80,7 +93,7 @@ const WatchList = () => {
     <div className="min-h-[36rem]">
       {/* {filterCurrentUser[0]?.userName} */}
       <h1 className="mb-4">
-        Welcome <b></b> here you can manage your
+        Welcome <b>{uName}</b> here you can manage your
         watchList{" "}
       </h1>
       <Row gutter={[32, 32]} className="crypto-card-container">
@@ -110,23 +123,58 @@ const WatchList = () => {
                     <p>Market Cap : {millify(currency.marketCap)}</p>
                     <p>Daily Cap : {millify(currency.change)}%</p>
                   </div>
-                  <div onClick={() => handleBookMark(currency.uuid)}>
+                  <button type="submit" onClick={() => handleRemoveBookMark(currency.uuid)}>
                     <HeartFilled
                       className={`text-[25px] duration-300 cursor-pointer mt-10 ${
-                        currentId.includes(currency.uuid)
+                        watchListcoin.includes(currency.uuid)
                           ? "text-red-700 scale-110"
                           : ""
                       }`}
                     />
-                  </div>
+                  </button>
                 </div>
               </Card>
-            </Col>
+            </Col>   
           );
         })}
+         {watchListcoin.length === 0  && <div className="ml-4">dont have any watchlist add now <Link className="text-cyan-600" to="/cryptocurrencies">click here</Link></div>}
       </Row>
     </div>
   );
 };
 
 export default WatchList;
+
+
+// import {
+//   collection,
+//   addDoc,
+//   Timestamp,
+//   doc,
+//   setDoc,
+//   onSnapshot,
+//   orderBy,
+//   query,
+// } from "firebase/firestore";
+
+// const [currentUserFirebase, setCurrentUserFirebase] = useState();
+// const getCollection = () => {
+//   try {
+//     const docRef = collection(db, "registerUserInfo");
+//     const q = query(docRef);
+//     //orderBy("createdAt", "desc")
+
+//     onSnapshot(q, (Snapshot) => {
+//       const allData = Snapshot.docs.map((doc) => ({
+//         id: doc.id,
+//         ...doc.data(),
+//       }));
+//       setCurrentUserFirebase(allData);
+//     });
+//   } catch (error) {
+//     //toast.error(error.message);
+//   }
+// };
+// useEffect(() => {
+//   getCollection();
+// }, []);

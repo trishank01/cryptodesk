@@ -17,7 +17,7 @@ import { auth } from "../firebase/config";
 import { REMOVE_ACTIVE_USER } from "../app/authSlice";
 import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
-import { ShowOnLogin, ShowOnLogout } from "./AuthRoutes";
+import { ShowOnLogin, ShowOnLoginNavBar, ShowOnLogout } from "./AuthRoutes";
 
 const Navbar = () => {
   const [activeMenu, setActiveMenu] = useState(true);
@@ -85,11 +85,11 @@ const Navbar = () => {
             <Link to="/news">News</Link>
           </Menu.Item>
 
-          <ShowOnLogin>
+          <ShowOnLoginNavBar>
             <Menu.Item icon={<StarOutlined />}>
               <Link to="/watchlist">WatchList</Link>
             </Menu.Item>
-          </ShowOnLogin>
+          </ShowOnLoginNavBar>
 
           <ShowOnLogout>
             <Menu.Item icon={<LoginOutlined />}>
@@ -97,11 +97,11 @@ const Navbar = () => {
             </Menu.Item>
           </ShowOnLogout>
 
-          <ShowOnLogin>
+          <ShowOnLoginNavBar>
             <Button className="border-none bg-white m-3" onClick={handleLogout} icon={<LogoutOutlined />}>
               Logout
             </Button>
-          </ShowOnLogin>
+          </ShowOnLoginNavBar>
 
         
         </Menu>

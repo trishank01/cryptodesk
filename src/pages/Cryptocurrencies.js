@@ -7,13 +7,13 @@ import {
   useGetCryptosForPaginationQuery,
   useGetSearchsuggestionsQuery,
 } from "../services/cryptoApi";
-import { CURRENT_ID, SelectCurrentId } from "../app/currentIdSlice";
 import { useDispatch, useSelector } from "react-redux";
 import Loader from "../components/Loader";
-
-
-
-
+import { doc, setDoc, onSnapshot } from "firebase/firestore";
+import { auth, db } from "../firebase/config";
+import { onAuthStateChanged } from "firebase/auth";
+import { GET_WATCHLIST_COIN, selectWatchListCoin } from "../app/watchlistSlice";
+import { ShowOnLoginNavBar } from "../components/AuthRoutes";
 
 const Cryptocurrencies = ({ simplified }) => {
   const [countNumber] = useState(50);
@@ -23,24 +23,18 @@ const Cryptocurrencies = ({ simplified }) => {
     count,
     offset,
   });
-
+  
   const cryptoCoins = cryptosList?.data?.coins;
-  console.log(cryptoCoins)
-
   const [cryptos, setCryptos] = useState([]);
+  const [user, setUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  //const [currentpage, setCurrentpage] = useState(2);
   const [showhidden, setShowhidden] = useState(false);
-  const { data   } = useGetSearchsuggestionsQuery(searchTerm);
- // const [currentID, setcurrentID] = useState([]);
+  const { data } = useGetSearchsuggestionsQuery(searchTerm);
   const searchQuery = data?.data?.coins;
+  const dispatch = useDispatch();
 
-  const dispatch = useDispatch()
-  const currentId = useSelector(SelectCurrentId)
-
-
-
-
+  const watchListcoin = useSelector(selectWatchListCoin)
+  
   useEffect(() => {
     setCryptos(cryptoCoins);
   }, [cryptosList, cryptoCoins]);
@@ -55,18 +49,62 @@ const Cryptocurrencies = ({ simplified }) => {
     };
   };
 
+  useEffect(() => {
+    onAuthStateChanged(auth, (user) => {
+      if (user) setUser(user);
+      else setUser(null);
+    });
+  }, []);
 
-
-  const handleBookMark = (id) => {
-
-    dispatch(CURRENT_ID(id))
-  };
   
 
+  useEffect(() => {
+    if (user) {
+      const userDocRef = doc(db, "bookmarks", user?.uid);
+      const unsubscribe = onSnapshot(userDocRef, (coin) => {
+        if (coin.exists()) {
+          // setWatchList(coin.data().coins);
+          dispatch(GET_WATCHLIST_COIN(coin.data().coins))
+        } else {
+          console.log("No items in watchList");
+        }
+      });
+      return () => {
+        unsubscribe();
+      };
+    }
+  }, [user , dispatch]);
 
+  // / dispatch(CURRENT_ID(id));
+  const handleBookMark = (id) => {
+  
+    const userDocRef = doc(db, "bookmarks", user?.uid);
 
+    try {
+      setDoc(userDocRef, {
+        coins: watchListcoin ? [...watchListcoin, id] : [id],
+      });
+      console.log("coin added");
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
 
-  if (isFetching) return <Loader/>;
+  const handleRemoveBookMark = (id) => {
+    const userDocRef = doc(db, "bookmarks", user?.uid);
+
+    try {
+      setDoc(userDocRef, {
+        coins: watchListcoin.filter((coin) => coin !== id),
+      });
+      console.log("coin remvoed");
+     
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+  console.log(watchListcoin)
+  if (isFetching) return <Loader />;
 
   return (
     <>
@@ -130,10 +168,23 @@ const Cryptocurrencies = ({ simplified }) => {
                     <p>Market Cap : {millify(currency.marketCap)}</p>
                     <p>Daily Cap : {millify(currency.change)}%</p>
                   </div>
-                  <div onClick={() => handleBookMark(currency.uuid)}>
-              
-                    <HeartFilled  className={`text-[25px] duration-300 cursor-pointer mt-10 ${currentId?.includes(currency.uuid) ? "text-red-700 scale-110" : ""}`}/>
+                  <ShowOnLoginNavBar>
+                  <div
+                    onClick={() =>
+                      watchListcoin?.includes(currency.uuid)
+                        ? handleRemoveBookMark(currency.uuid)
+                        : handleBookMark(currency.uuid)
+                    }
+                  >
+                    <HeartFilled
+                      className={`text-[25px] duration-300 cursor-pointer mt-10 ${
+                        watchListcoin?.includes(currency.uuid)
+                          ? "text-red-700 scale-110"
+                          : ""
+                      }`}
+                    />
                   </div>
+                  </ShowOnLoginNavBar>
                 </div>
               </Card>
             </Col>
@@ -151,15 +202,12 @@ const Cryptocurrencies = ({ simplified }) => {
           </Button>
           <Button onClick={() => setOffset(offset + 50)}>Next</Button>
         </div>
-      //  <div className="flex justify-center mt-6">
-      //    <PaginationPage offset={offset} setOffset={setOffset}/>
-      //  </div>
+        //  <div className="flex justify-center mt-6">
+        //    <PaginationPage offset={offset} setOffset={setOffset}/>
+        //  </div>
       )}
-     
     </>
   );
 };
 
 export default Cryptocurrencies;
-
-

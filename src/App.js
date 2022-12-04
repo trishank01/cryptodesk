@@ -79,7 +79,12 @@ function App() {
               <Route
                 exect
                 path="/watchlist"
-                element={<WatchList />}
+                element={
+                 <ShowOnLogin>
+                <WatchList />
+                </ShowOnLogin>
+              
+              }
               />
               <Route  path="/login" element={<Login /> } />
               <Route exect path="/register" element={<Register />} />
@@ -92,8 +97,8 @@ function App() {
             level={5}
             style={{ color: "white", textAlign: "center" }}
           >
-            CryptoDesk <br />
-            All rights reservered
+            CryptoDesk <br/>
+            Develop by <a className="m-1 inline-block"  href="https://trishank.me/" target="_blank" rel="noreferrer">Trishank </a>with ❤️
           </Typography.Title>
           <Space>
             <Link to="/">Home</Link>
